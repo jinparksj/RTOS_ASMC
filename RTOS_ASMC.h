@@ -21,9 +21,17 @@ public:
     void InitializeSystem();
     void InitializeMotors();
     void Begin(unsigned int max_speed, unsigned int min_speed, unsigned int home_speed);
+    void InitializeSemaphore(SemaphoreHandle_t motor1_key, SemaphoreHandle_t motor2_key, SemaphoreHandle_t motor3_key, \
+                                    SemaphoreHandle_t motor4_key, SemaphoreHandle_t motor5_key, SemaphoreHandle_t motor6_key);
+
+    void TasksCreate();
+    void vTaskSerial();
     void Run(float target_position_mm);
 
 
+
+
+//Motor member variables
 public:
     int _STEP = 0;
     int _DIR = 0;
@@ -42,19 +50,8 @@ public:
     int _stall_detection_count = 3; //0~3
     int _stall_detection_threshold = 0; //0~255
     int _status = 0; // status of motor
-
-public:
-    long _BPS = 250000;
-    int _Mega_ID = 0;
-    int _TE_PIN = 22;
-    RTOS_RS485* RS485COM;
-
-
-public:
     int POSITIVE = 1;
     int NEGATIVE = 0;
-
-private:
     unsigned long _OCR_max_speed = 0;
     unsigned long _OCR_min_speed = 0;
     unsigned long _OCR_mid_speed_1 = 0;
@@ -83,6 +80,23 @@ private:
     bool isHoming = false;
     bool isPumpHoming = false;
     int _positive_direction = 1; // positive: 1, negative: 0
+
+//Communication member variables
+public:
+    long _BPS = 250000;
+    int _Mega_ID = 0;
+    int _TE_PIN = 22;
+    RTOS_RS485* RS485COM;
+
+//RTOS member variables
+private:
+    SemaphoreHandle_t _motor1_key;
+    SemaphoreHandle_t _motor2_key;
+    SemaphoreHandle_t _motor3_key;
+    SemaphoreHandle_t _motor4_key;
+    SemaphoreHandle_t _motor5_key;
+    SemaphoreHandle_t _motor6_key;
+
 
 };
 
