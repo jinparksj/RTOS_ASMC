@@ -20,6 +20,7 @@ RTOS_ASMC::RTOS_ASMC(long BPS, int Mega_ID, int TE_PIN, \
     _stall_detection_count = stall_detection_count;
     _stall_detection_threshold = stall_detection_threshold;
 
+
     switch (motor_number){
         case 1:
             _motor_number = motor_number;
@@ -223,7 +224,8 @@ RTOS_ASMC::RTOS_ASMC(long BPS, int Mega_ID, int TE_PIN, \
 void RTOS_ASMC::InitializeSystem() {
     //Initialize Motor, RS485, and Servo
     RS485COM->InitializeCommunication();
-    InitialzeMotors();
+    InitializeMotors();
+
 }
 
 void RTOS_ASMC::InitializeMotors() {
@@ -296,6 +298,49 @@ void RTOS_ASMC::Begin(unsigned int max_speed, unsigned int min_speed, unsigned i
     Serial.print("%_OCR_mid_speed_2 : "); Serial.println(_OCR_mid_speed_2);
     Serial.print("%_OCR_mid_speed_1 : "); Serial.println(_OCR_mid_speed_1);
     Serial.print("%_OCR_min_speed : "); Serial.println(_OCR_min_speed);
+}
+
+void RTOS_ASMC::InitializeSemaphore(SemaphoreHandle_t motor1_key, SemaphoreHandle_t motor2_key, SemaphoreHandle_t motor3_key, \
+                                    SemaphoreHandle_t motor4_key, SemaphoreHandle_t motor5_key, SemaphoreHandle_t motor6_key) {
+
+    _motor1_key = motor1_key;
+    _motor2_key = motor2_key;
+    _motor3_key = motor3_key;
+    _motor4_key = motor4_key;
+    _motor5_key = motor5_key;
+    _motor6_key = motor6_key;
+
+    vSemaphoreCreateBinary(_motor1_key);
+    vSemaphoreCreateBinary(_motor2_key);
+    vSemaphoreCreateBinary(_motor3_key);
+    vSemaphoreCreateBinary(_motor4_key);
+    vSemaphoreCreateBinary(_motor5_key);
+    vSemaphoreCreateBinary(_motor6_key);
+
+    xSemaphoreTake(_motor1_key, 0);
+    xSemaphoreTake(_motor2_key, 0);
+    xSemaphoreTake(_motor3_key, 0);
+    xSemaphoreTake(_motor4_key, 0);
+    xSemaphoreTake(_motor5_key, 0);
+    xSemaphoreTake(_motor6_key, 0);
+
+
+}
+
+void RTOS_ASMC::TasksCreate() {
+    xTaskCreate(vTaskSerial, NULL, configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+}
+
+void RTOS_ASMC::vTaskSerial() {
+    Serial.println("%Ready to Get UART Serial Packets");
+
+    while (true) {
+        if (Serial.available() > 0) {
+            String user_command = Serial.readStringUntil('/');
+
+
+        }
+    }
 }
 
 void RTOS_ASMC::Run(float target_position_mm) {
