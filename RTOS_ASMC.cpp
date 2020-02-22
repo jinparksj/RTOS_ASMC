@@ -3,23 +3,40 @@
 //
 #include "RTOS_ASMC.h"
 
-RTOS_ASMC::RTOS_ASMC(long BPS, int Mega_ID, int TE_PIN, \
-                    int motor_number, float motor_current, unsigned int max_speed, unsigned int min_speed, \
-                    unsigned int home_speed, int microstepping, float lead, \
-                    int sample_time_BEMF = 7, int stall_detection_count = 3, int stall_detection_threshold = 0) \
-                    : RTOS_RS485(BPS, Mega_ID, TE_PIN){
+static void vTaskSerial(void *pvParameters);
+
+static String user_command = "";
+static String uart_command = "";
+static String rs485_command = "";
+static RTOS_RS485* RS485COM;
+
+RTOS_ASMC::RTOS_ASMC(long BPS, int Mega_ID, int TE_PIN, int total_motor_number)
+                    : RTOS_RS485(BPS, Mega_ID, TE_PIN) {
 
     RS485COM = new RTOS_RS485(BPS, Mega_ID, TE_PIN);
+    _TOTAL_MOTOR_NUMBER = total_motor_number;
+}
 
-    _motor_current = motor_current;
-    _microstepping = microstepping;
-    _max_speed = max_speed;
-    _min_speed = min_speed;
-    _home_speed = home_speed;
-    _sampling_time_BEMF = sample_time_BEMF;
-    _stall_detection_count = stall_detection_count;
-    _stall_detection_threshold = stall_detection_threshold;
+void RTOS_ASMC::InitializeSystem(int motor_number[], float motor_current[], unsigned int max_speed[], unsigned int min_speed[], \
+                                unsigned int home_speed[], int microstepping[], float lead[], \
+                                int sample_time_BEMF[], int stall_detection_count[], int stall_detection_threshold[]) {
+    //Initialize Motor, RS485, and Servo
+    RS485COM->InitializeCommunication();
 
+    for (int i = 0; i < _TOTAL_MOTOR_NUMBER; i++) {
+        InitializeMotors(motor_number[i], motor_current[i], max_speed[i], min_speed[i], home_speed[i], microstepping[i], lead[i], \
+                         sample_time_BEMF[i], stall_detection_count[i], stall_detection_threshold[i]);
+    }
+
+
+}
+
+void RTOS_ASMC::InitializeMotors(int motor_number, float motor_current, unsigned int max_speed, unsigned int min_speed, \
+                                unsigned int home_speed, int microstepping, float lead, \
+                                int sample_time_BEMF = 7, int stall_detection_count = 3, int stall_detection_threshold = 0) {
+
+    NEGATIVE = 0;
+    POSITIVE = 1;
 
     switch (motor_number){
         case 1:
@@ -194,7 +211,7 @@ RTOS_ASMC::RTOS_ASMC(long BPS, int Mega_ID, int TE_PIN, \
             break;
     }
 
-    SPI_DRV8711 SPIMOTOR(_SS, _SLEEP, _motor_current, _microstepping);
+    SPI_DRV8711 SPIMOTOR(_SS, _SLEEP, motor_current, microstepping);
     SPIMOTOR.BootUpSPI();
 
     pinMode(_STEP, OUTPUT);
@@ -205,32 +222,14 @@ RTOS_ASMC::RTOS_ASMC(long BPS, int Mega_ID, int TE_PIN, \
 
     digitalWrite(_STEP, LOW);
     digitalWrite(_DIR, LOW);
-    SPI.end();
 
-    _status = 0; // status of motor, 0 = Idle, 1 = Accel, 2 = const speed, 3 = decel
-    _current_position = 0;
-    _target_position = 0;
-    _deceleration_position_1 = 0;
-    _deceleration_position_2 = 0;
-    //lead: one revolution with microstepping (200 steps * microstepping) is converted to linear transition (mm)
-    _lead_one_step = lead / (200 * (2 << (_microstepping - 1))); //one step -> how long it is moves linearly in mm (unit: mm / step);
-    _acceleration_section_step_1 = 1 * 200 * (2 << (_microstepping - 1)); // half revolution (step)
-    _acceleration_section_step_2 = 1.5 * 200 * (2 << (_microstepping - 1)); //
-    _acceleration_section_step_3 = 2 * 200 * (2 << (_microstepping - 1));
-    _acceleration_section_step_4 = 2.5 * 200 * (2 << (_microstepping - 1));
-    _acceleration_section_step_5 = 3 * 200 * (2 << (_microstepping - 1));
-}
+    _max_speed = max_speed;
+    _min_speed = min_speed;
+    _home_speed = home_speed;
+    _sampling_time_BEMF = sample_time_BEMF;
+    _stall_detection_count = stall_detection_count;
+    _stall_detection_threshold = stall_detection_threshold;
 
-void RTOS_ASMC::InitializeSystem() {
-    //Initialize Motor, RS485, and Servo
-    RS485COM->InitializeCommunication();
-    InitializeMotors();
-
-}
-
-void RTOS_ASMC::InitializeMotors() {
-    NEGATIVE = 0;
-    POSITIVE = 1;
     Serial.print(_motor_number); Serial.print(" / ");
     Serial.print(_STEP); Serial.print(" / ");
     Serial.print(_DIR); Serial.print(" / ");
@@ -240,23 +239,48 @@ void RTOS_ASMC::InitializeMotors() {
     Serial.print(_HOME); Serial.print(" / ");
     Serial.print(_RESET); Serial.println(" / ");
 
-    SPI_DRV8711 SPIMOTOR(_SS, _SLEEP, _motor_current, _microstepping);
+    _status = 0; // status of motor, 0 = Idle, 1 = Accel, 2 = const speed, 3 = decel
 
-    SPIMOTOR._TORQ_SMPLTH = _sampling_time_BEMF; //0: 50us, 1: 100us, 2: 200us, 3: 300us, 4: 400us, 5: 600us, 6: 800us, 7: 1000us
-    SPIMOTOR._STALL_SDCNT = _stall_detection_count;  //0~4, 1, 2, 4, 8
-    SPIMOTOR._STALL_SDTHR = _stall_detection_threshold; //0~255
+    _current_position[ (motor_number % 10) - 1 ] = 0;
+    _target_position[ (motor_number % 10) - 1 ] = 0;
 
-    SPIMOTOR.Write_TORQUE(_motor_current);
-    SPIMOTOR.Write_CTRL_Disable(_microstepping);
-    SPIMOTOR.Write_OFF();
-    SPIMOTOR.Write_BLANK();
-    SPIMOTOR.Write_DECAY();
-    SPIMOTOR.Write_STALL();
-    SPIMOTOR.Write_DRIVE();
-    SPIMOTOR.Write_STATUS();
-    SPIMOTOR.Write_CTRL_Enable(_microstepping);
-    SPIMOTOR.ReadAllRegisters();
-    SPI.end();
+
+    _deceleration_position_1[ (motor_number % 10) - 1 ] = 0;
+    _deceleration_position_2[ (motor_number % 10) - 1 ] = 0;
+    _deceleration_position_3[ (motor_number % 10) - 1 ] = 0;
+    _deceleration_position_4[ (motor_number % 10) - 1 ] = 0;
+    _deceleration_position_5[ (motor_number % 10) - 1 ] = 0;
+
+    //lead: one revolution with microstepping (200 steps * microstepping) is converted to linear transition (mm)
+    _lead_one_step = lead / (200 * (2 << (microstepping - 1))); //one step -> how long it is moves linearly in mm (unit: mm / step);
+    _acceleration_section_step_1[ (motor_number % 10) - 1 ] = 1 * 200 * (2 << (microstepping - 1)); // half revolution (step)
+    _acceleration_section_step_2[ (motor_number % 10) - 1 ] = 1.5 * 200 * (2 << (microstepping - 1)); //
+    _acceleration_section_step_3[ (motor_number % 10) - 1 ] = 2 * 200 * (2 << (microstepping - 1));
+    _acceleration_section_step_4[ (motor_number % 10) - 1 ] = 2.5 * 200 * (2 << (microstepping - 1));
+    _acceleration_section_step_5[ (motor_number % 10) - 1 ] = 3 * 200 * (2 << (microstepping - 1));
+
+
+
+
+
+
+
+//
+//    SPIMOTOR._TORQ_SMPLTH = _sampling_time_BEMF; //0: 50us, 1: 100us, 2: 200us, 3: 300us, 4: 400us, 5: 600us, 6: 800us, 7: 1000us
+//    SPIMOTOR._STALL_SDCNT = _stall_detection_count;  //0~4, 1, 2, 4, 8
+//    SPIMOTOR._STALL_SDTHR = _stall_detection_threshold; //0~255
+//
+//    SPIMOTOR.Write_TORQUE(_motor_current);
+//    SPIMOTOR.Write_CTRL_Disable(microstepping);
+//    SPIMOTOR.Write_OFF();
+//    SPIMOTOR.Write_BLANK();
+//    SPIMOTOR.Write_DECAY();
+//    SPIMOTOR.Write_STALL();
+//    SPIMOTOR.Write_DRIVE();
+//    SPIMOTOR.Write_STATUS();
+//    SPIMOTOR.Write_CTRL_Enable(microstepping);
+//    SPIMOTOR.ReadAllRegisters();
+//    SPI.end();
 
     Begin(_max_speed, _min_speed, _home_speed);
 }
@@ -327,23 +351,14 @@ void RTOS_ASMC::InitializeSemaphore(SemaphoreHandle_t motor1_key, SemaphoreHandl
 
 }
 
-void RTOS_ASMC::TasksCreate() {
+void RTOS_ASMC::CreateTasks() {
     xTaskCreate(vTaskSerial, NULL, configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+
 }
 
-void RTOS_ASMC::vTaskSerial() {
-    Serial.println("%Ready to Get UART Serial Packets");
-
-    while (true) {
-        if (Serial.available() > 0) {
-            String user_command = Serial.readStringUntil('/');
 
 
-        }
-    }
-}
-
-void RTOS_ASMC::Run(float target_position_mm) {
+void RTOS_ASMC::Run(int motor_number, float target_position_mm) {
     /*
      * one half revolution takes one section of scurve: 100 steps
      */
@@ -388,3 +403,39 @@ void RTOS_ASMC::Run(float target_position_mm) {
     _status = 1;
 }
 
+
+
+static void vTaskSerial(void *pvParameters) {
+    Serial.println("%Ready to Get UART Serial Packets");
+
+    while (true) {
+        if (Serial.available() > 0) {
+            uart_command = Serial.readStringUntil('/');
+        }
+        vTaskDelay( 100 / portTICK_PERIOD_MS);
+    }
+}
+
+static void vTaskMotor1(void *pvParameters) {
+
+}
+
+static void vTaskMotor2(void *pvParameters) {
+
+}
+
+static void vTaskMotor3(void *pvParameters) {
+
+}
+
+static void vTaskMotor4(void *pvParameters) {
+
+}
+
+static void vTaskMotor5(void *pvParameters) {
+
+}
+
+static void vTaskMotor6(void *pvParameters) {
+
+}

@@ -16,7 +16,7 @@ class RTOS_RS485 {
 public:
     RTOS_RS485(long BPS, int Mega_ID, int TE_PIN);
     void InitializeCommunication();
-    void SendSerialPacket(String Packet, bool isConfirmParity = true);
+    void SendSerialPacket(String Packet, bool isConfirmParity);
     String PacketGenerator_485(char ReceiverID, char MotorID, String string_command);
     String PacketGenerator_485(char ReceiverID, char MotorID, char char_command);
     String PacketGenerator_485(char ReceiverID, char MotorID, char char_command, char char_value);
@@ -34,7 +34,7 @@ public:
     String EchoGenerator(char sender_id, char char_command);
     String EchoGenerator(char sender_id, char motor_id, char set_command1, char set_command2, float float_value);
     String EchoGenerator(char sender_id, char motor_id, char set_command1, char set_command2, int int_value);
-    bool ReadPacketsBUS(String desired_packet = "", bool is_desired_packet_mode = false, bool ConfirmParityOrCheckSerial = true);
+    bool ReadPacketsBUS(String desired_packet, bool is_desired_packet_mode, bool ConfirmParityOrCheckSerial);
     String ReadBusSerialPacket();
     String ReadUSBSerialPacket();
     void SerialFlush();
@@ -85,7 +85,7 @@ protected:
     String _start_delimiter = String('*'); //ASCII 42
     String _end_delimiter = String('/');
     int _Mega_ID = 0;
-    char _character_Mega_ID = "";
+    char _character_Mega_ID = '\0';
     int _parity_echo_delay = 1000;
     String _latest_sending_packet = "";
     unsigned long resend_interval = 20000;
