@@ -13,8 +13,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RTOS_ASMC.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/RTOS_ASMC.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RTOS_ASMC.h" beforeDir="false" afterPath="$PROJECT_DIR$/RTOS_ASMC.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RTOS_RS485.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/RTOS_RS485.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RTOS_RS485.h" beforeDir="false" afterPath="$PROJECT_DIR$/RTOS_RS485.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +36,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../ServoTimer2-master" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -49,6 +47,18 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
     </key>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -65,6 +75,7 @@
       <workItem from="1582256353002" duration="5556000" />
       <workItem from="1582352549707" duration="5046000" />
       <workItem from="1582359866361" duration="4500000" />
+      <workItem from="1582408943572" duration="6786000" />
     </task>
     <servers />
   </component>
