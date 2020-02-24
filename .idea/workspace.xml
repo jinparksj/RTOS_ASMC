@@ -36,7 +36,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../GFMotorV2" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -47,6 +47,18 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
     </key>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -64,7 +76,13 @@
 =======
       <workItem from="1582218494185" duration="14844000" />
       <workItem from="1582256353002" duration="5556000" />
+<<<<<<< HEAD
 >>>>>>> 6dc29687d61477d1146fe2614063c559ef571da1
+=======
+      <workItem from="1582352549707" duration="5046000" />
+      <workItem from="1582359866361" duration="4500000" />
+      <workItem from="1582408943572" duration="6786000" />
+>>>>>>> 5923421f804f7e0d381f19614a5f6b131d8aae9a
     </task>
     <task id="LOCAL-00001" summary="update">
       <created>1582246944841</created>
@@ -98,10 +116,10 @@
     <option name="LAST_COMMIT_MESSAGE" value="update" />
 =======
   <component name="WindowStateProjectService">
-    <state x="1724" y="311" key="FileChooserDialogImpl" timestamp="1582267962892">
+    <state x="1724" y="311" key="FileChooserDialogImpl" timestamp="1582354777389">
       <screen x="65" y="24" width="2495" height="1056" />
     </state>
-    <state x="1724" y="311" key="FileChooserDialogImpl/640.1080.1920.1080/65.24.2495.1056@65.24.2495.1056" timestamp="1582267962892" />
+    <state x="1724" y="311" key="FileChooserDialogImpl/640.1080.1920.1080/65.24.2495.1056@65.24.2495.1056" timestamp="1582354777389" />
     <state x="1599" y="257" key="search.everywhere.popup" timestamp="1582262622617">
       <screen x="65" y="24" width="2495" height="1056" />
     </state>

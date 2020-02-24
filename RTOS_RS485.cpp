@@ -106,7 +106,7 @@ bool RTOS_RS485::ReadPacketsBUS(String desired_packet = "", bool is_desired_pack
     // ConfirmParityOrCheckSerial: true - confirm parity / false - check serial packet
     int temp_int_read_return = 0;
     String bus_packet = "";
-    char receiver_id  = "";
+    char receiver_id  = '\0';
     int count_empty = 0;
 
     unsigned long start_time = millis();
@@ -579,7 +579,7 @@ String RTOS_RS485::ReadUSBSerialPacket() {
 }
 
 void RTOS_RS485::SerialFlush() {
-    char temp_ch_read = "";
+    char temp_ch_read = '\0';
     delay(_serialDelay);
     while (RS485HwSerial1.available() > 0) {
         temp_ch_read = RS485HwSerial1.read();
@@ -682,7 +682,7 @@ bool RTOS_RS485::ParityChecker(String Packet) {
     int temp_ascii_sum = 0;
     int temp_ascii_mod = 0;
     String temp_parity_string = "";
-    char temp_parity_buffer[3] = "";
+    char temp_parity_buffer[3] = {'\0', };
     int temp_parity_integer = 0;
 
     int temp_location_delimiter = Packet.length() - 3;
